@@ -2,6 +2,16 @@
 <?php
 	require 'config/config.php';
 
+	if(!empty($_POST['search'])){
+		setcookie('search', $_POST['search'], time() + (86400 * 30), "/"); // 86400 = 1 day
+	  }else{
+		if(empty($_GET['pageno'])){
+		  unset($_COOKIE['search']);
+		  setcookie('search', null, -1, '/');
+		}
+	  }
+	
+
 	if(!empty($_GET['pageno'])){
 		$pageno=$_GET['pageno'];
 	}else{
@@ -10,14 +20,23 @@
 	$numOfRecs=6;
 	$offset=($pageno-1) * $numOfRecs;
 
-	if(empty($_POST['search'])){
-		$stmt = $pdo->prepare('SELECT * FROM products ORDER BY  id DESC');
+	if(empty($_POST['search']) && empty($_COOKIE['search'])){
+		if(empty($_GET['category_id'])) {
+			$stmt = $pdo->prepare('SELECT * FROM products ORDER BY  id DESC');			
+		}else{
+			$stmt = $pdo->prepare('SELECT * FROM products WHERE category_id='. $_GET['category_id'] .' ORDER BY  id DESC');
+		}	
 		$stmt->execute();
 		$rawResult= $stmt->fetchAll();
 
 		$total_pages=ceil(count($rawResult) / $numOfRecs);
 
-		$stmt = $pdo->prepare("SELECT * FROM products ORDER BY  id DESC LIMIT $offset,$numOfRecs");
+		if(!empty($_GET['category_id'])) {
+			$stmt = $pdo->prepare("SELECT * FROM products WHERE category_id=". $_GET['category_id'] ." ORDER BY  id DESC LIMIT $offset,$numOfRecs");
+		}else{
+			$stmt = $pdo->prepare("SELECT * FROM products ORDER BY  id DESC LIMIT $offset,$numOfRecs");
+		}
+	
 		$stmt->execute();
 		$result= $stmt->fetchAll();
 	}else{
@@ -46,7 +65,7 @@
 					<ul class="main-categories">
 						<li class="main-nav-list">
 							<?php foreach($catResult as $key=>$value) { ?>
-								<a data-toggle="collapse"><span class="lnr lnr-arrow-right"></span><?php echo escape($value['name'])?></a>						
+								<a  href="?category_id=<?php echo $value['id']?>"><span class="lnr lnr-arrow-right"></span><?php echo escape($value['name'])?></a>						
 							<?php }	?>
 							
 						</li>						
