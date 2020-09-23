@@ -35,6 +35,13 @@ if($_POST){
     if(empty($_FILES['image']['name'])){
       $imageError="Image is required";
     }else{
+        if(is_numeric($_POST['quantity'])!= 1){
+          $quantityError= "Quantity should be integer value";
+        }
+        if(is_numeric($_POST['price'])!= 1){
+          $priceError= "Price should be integer value";
+        }
+       if($quantityError == '' && $priceError == ''){
         $file = 'images/'.$_FILES['image']['name'];
         $fileType= pathinfo($file,PATHINFO_EXTENSION);
         if($fileType != 'png' && $fileType != 'jpg' && $fileType != 'jpeg'){
@@ -55,6 +62,7 @@ if($_POST){
                 echo "<script>alert('Product is added');window.location.href='index.php';</script>";
             }
         }
+       }
   }
 
 }
